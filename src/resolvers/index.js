@@ -1,3 +1,4 @@
 const userResolvers = require('./user');
+const inviteResolvers = require('./invite');
 
-module.exports = [userResolvers];
+module.exports = [userResolvers, inviteResolvers];

@@ -1,17 +1,28 @@
-const { AuthenticationError, UserInputError } = require('apollo-server');
-
+const { AuthenticationError, UserInputError, ForbiddenError } = require('apollo-server');
+const { combineResolvers } = require('graphql-resolvers');
 const jwt = require('jsonwebtoken');
+const isAuthenticated = require('./authorization');
 
 const createToken = async (user) => {
-  const { email, username } = user;
-  return jwt.sign({ email, username }, process.env.SECRET_KEY);
+  const {
+    _id, email, phone, username,
+  } = user;
+  return jwt.sign({
+    _id, email, phone, username,
+  }, process.env.SECRET_KEY);
 };
 
 module.exports = {
   Query: {
-    fetchAllUsers: async (parent, args, { models }) => models.User.find(),
+    fetchAllUsers: combineResolvers(
+      isAuthenticated,
+      async (parent, args, { models }) => models.User.find(),
+    ),
 
-    fetchUserById: async (parent, args, { models }) => models.User.findById(args._id),
+    fetchUserById: combineResolvers(
+      isAuthenticated,
+      async (parent, args, { models }) => models.User.findById(args._id),
+    ),
   },
 
   Mutation: {

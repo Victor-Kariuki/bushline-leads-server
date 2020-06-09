@@ -3,9 +3,10 @@
 // 3rd party imports
 require('dotenv').config();
 const express = require('express');
-const { ApolloServer } = require('apollo-server-express');
+const { ApolloServer, AuthenticationError } = require('apollo-server-express');
 const mongoose = require('mongoose');
 const cors = require('cors');
+const jwt = require('jsonwebtoken');
 
 // local imports
 const typeDefs = require('./typeDefs');
@@ -17,11 +18,29 @@ require('./config/db')(mongoose);
 
 const app = express();
 app.use(cors());
+
+const getCurrentUser = async (req) => {
+  const token = req.headers['x-token'];
+  if (token) {
+    try {
+      return await jwt.verify(token, process.env.SECRET);
+    } catch (error) {
+      throw new AuthenticationError(
+        'Your session expired. Sign in again.',
+      );
+    }
+  }
+};
+
 const server = new ApolloServer({
   typeDefs,
   resolvers,
-  context: {
-    models,
+  context: async ({ req }) => {
+    const currentUser = await getCurrentUser(req);
+    return {
+      currentUser,
+      models,
+    };
   },
 });
 
