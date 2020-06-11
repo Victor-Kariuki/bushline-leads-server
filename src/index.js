@@ -20,16 +20,20 @@ const app = express();
 app.use(cors());
 
 const getCurrentUser = async (req) => {
-  const token = req.headers['x-token'];
+  const authHeader = req.headers.authorization;
+  const token = authHeader && authHeader.split(' ')[1];
+
   if (token) {
     try {
-      return await jwt.verify(token, process.env.SECRET);
+      const user = await jwt.verify(token, process.env.SECRET);
+      return user;
     } catch (error) {
-      throw new AuthenticationError(
+      return new AuthenticationError(
         'Your session expired. Sign in again.',
       );
     }
   }
+  return new AuthenticationError('No token provided.');
 };
 
 const server = new ApolloServer({

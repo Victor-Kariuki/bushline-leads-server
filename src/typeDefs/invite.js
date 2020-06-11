@@ -7,6 +7,7 @@ module.exports = gql`
     lastName: String
     email: String
     phone: String
+    sender: User
     status: Boolean
   }
 
@@ -19,10 +20,11 @@ module.exports = gql`
 
   extend type Query {
     fetchAllInvites: [Invite]
-    fetchInviteById(_id: ID!): Invite
+    fetchInviteById(id: ID!): Invite
   }
 
   extend type Mutation {
     createInvite(invite: InviteInput): Invite
+    deleteInvite(id: ID!): Boolean
   }
 `;

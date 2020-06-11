@@ -26,6 +26,11 @@ const InviteSchema = new Schema({
     type: Boolean,
     default: false,
   },
+
+  sender: {
+    type: Schema.Types.ObjectId,
+    ref: 'User',
+  },
 }, { timestamps: true });
 
 module.exports = model('Invite', InviteSchema);

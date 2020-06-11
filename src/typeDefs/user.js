@@ -6,6 +6,7 @@ module.exports = gql`
     username: String
     phone: String
     email: String
+    isAdmin: Boolean,
   }
 
   type Token {
@@ -32,12 +33,13 @@ module.exports = gql`
 
   extend type Query {
     fetchAllUsers: [User]
-    fetchUserById(_id: ID): User
+    fetchUserById(id: ID): User
   }
 
   extend type Mutation {
     createUser(user: RegisterInput): Token!
     authenticateUser(user: LoginInput): Token!
-    updateUser(user: UpdateInput): User
+    updateUser(id: ID, user: UpdateInput): User
+    deleteUser(id: ID): Boolean!
   }
 `;

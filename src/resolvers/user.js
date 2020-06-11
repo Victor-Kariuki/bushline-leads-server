@@ -1,7 +1,7 @@
-const { AuthenticationError, UserInputError, ForbiddenError } = require('apollo-server');
+const { AuthenticationError, UserInputError } = require('apollo-server');
 const { combineResolvers } = require('graphql-resolvers');
 const jwt = require('jsonwebtoken');
-const isAuthenticated = require('./authorization');
+const { isAuthenticated, isAdmin, isAccountOwner } = require('./authorization');
 
 const createToken = async (user) => {
   const {
@@ -9,19 +9,20 @@ const createToken = async (user) => {
   } = user;
   return jwt.sign({
     _id, email, phone, username,
-  }, process.env.SECRET_KEY);
+  }, process.env.SECRET_KEY, { expiresIn: '1d' });
 };
 
 module.exports = {
   Query: {
     fetchAllUsers: combineResolvers(
       isAuthenticated,
+      isAdmin,
       async (parent, args, { models }) => models.User.find(),
     ),
 
     fetchUserById: combineResolvers(
       isAuthenticated,
-      async (parent, args, { models }) => models.User.findById(args._id),
+      async (parent, args, { models }) => models.User.findById(args.id),
     ),
   },
 
@@ -45,10 +46,23 @@ module.exports = {
       if (!isValid) {
         throw new AuthenticationError('Invalid password.');
       }
-
       return { token: createToken(user) };
     },
 
-    updateUser: (parent, args, { models }) => {},
+    updateUser: combineResolvers(
+      isAuthenticated,
+      isAdmin,
+      (parent, args, { models }) => models.User.findByIdAndUpdate(args.id, {
+        username: args.user.username,
+        phone: args.user.phone,
+        email: args.user.email,
+      }, { new: true }),
+    ),
+
+    deleteUser: combineResolvers(
+      isAuthenticated,
+      isAdmin,
+      async (parent, args, { models }) => models.User.findOneAndDelete(args.id),
+    ),
   },
 };

@@ -24,6 +24,12 @@ const UserSchema = new Schema({
     type: String,
     required: true,
   },
+
+  isAdmin: {
+    type: Boolean,
+    default: false,
+    required: true,
+  },
 }, { timestamps: true });
 
 UserSchema.pre('save', async function save(next) {
